@@ -1,1 +1,1 @@
-# intro-to-comp-sci-project
+# The Haunted House
