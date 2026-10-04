@@ -1,14 +1,15 @@
 #intro to comp sci project
 #add your room libary here that you created. 
 from rooms.kitchen import play_kitchen_room
-
+from rooms.library import play_library
 def main():
     player = {"health": 4, "keys": [], "rooms_completed": []}
 
     # everyone pls add your room function here
     rooms = [
         ("Kitchen", play_kitchen_room),
-    ]
+        ("library", play_library),
+]   
 
     for name, room_func in rooms:
         if not room_func(player):
