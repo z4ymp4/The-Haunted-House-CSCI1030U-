@@ -2,6 +2,7 @@
 #add your room libary here that you created. 
 from rooms.kitchen import play_kitchen_room
 from rooms.bedroom import play_bedroom
+from rooms.exit_door import play_exit
 
 def main():
     player = {"health": 4, "keys": [], "rooms_completed": []}
@@ -10,6 +11,7 @@ def main():
     rooms = [
         ("Kitchen", play_kitchen_room),
         ("Ghost Bedroom", play_bedroom),
+        ("Exit", play_exit),
     ]
 
     for name, room_func in rooms:
