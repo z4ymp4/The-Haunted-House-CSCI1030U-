@@ -3,7 +3,7 @@ def play_exit(player):
     Room 5: The Exit Door
     The player must inspect and try the final exit door using collected keys.
     """
-    # 1. COLLECTIONS: Dictionary storing room info & requirements
+    # Dictionary storing room info & requirements
     exit_info = {
         "required_keys": 3,
         "attempts_left": 3,
@@ -14,7 +14,7 @@ def play_exit(player):
     print("\n--- ROOM 5: THE EXIT DOOR ---")
     print("You reach the heavy iron front door of the haunted house.")
 
-    # 2. CONTROL FLOW: Loop allowing the player to make decisions
+    # while Loop allowing the player to make decisions, locking them in the loop tiil either they escape or run out of attempts
     while exit_info["attempts_left"] > 0:
         print("\nWhat would you like to do?")
         for choice in exit_info["choices"]:
@@ -22,7 +22,7 @@ def play_exit(player):
 
         user_choice = input("Enter option (1-3): ").strip()
 
-        # 3. CONTROL FLOW: Conditionals for player choice
+        # if elsee conditions for player choice
         if user_choice == "1":
             print(f"The door has {exit_info['required_keys']} heavy keyholes. It looks solid.")
             
