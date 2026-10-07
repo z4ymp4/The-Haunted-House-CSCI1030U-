@@ -22,7 +22,7 @@ def play_exit(player):
 
         user_choice = input("Enter option (1-3): ").strip()
 
-        # if elsee conditions for player choice
+        # if / else conditions for player choice
         if user_choice == "1":
             print(f"The door has {exit_info['required_keys']} heavy keyholes. It looks solid.")
             
