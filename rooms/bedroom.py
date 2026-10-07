@@ -1,4 +1,4 @@
-// Kapishnan
+# Kapishnan
 def play_bedroom(player):
     
     print("\nYou push open the creaking door to the Ghost Bedroom. A cold mist fills the air, and a glowing specter blocks the path!")
