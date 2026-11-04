@@ -19,7 +19,6 @@ def play_bedroom(player: dict) -> bool:
     attempts_left: int = 30
     cleared: bool = False
     
-    # State tracking
     has_mirror: bool = False
     searched_drawer: bool = False
     searched_carpet: bool = False
@@ -29,7 +28,6 @@ def play_bedroom(player: dict) -> bool:
         current_health = player.get("health", 3)
         print(f"\n[ Health: {current_health} HP | Ghost Strikes Left: {attempts_left} ]")
         
-        # Ghost stance dictates which tactics are dangerous
         ghost_state = random.choice(["watching", "charging", "wandering"])
         
         if ghost_state == "watching":
@@ -48,9 +46,6 @@ def play_bedroom(player: dict) -> bool:
         
         action = input("\nChoose action (1-5): ").strip()
 
-        # -------------------------------------------------------------
-        # 1. SEARCH
-        # -------------------------------------------------------------
         if action == "1":
             print("\nWhere do you want to search?")
             print("  [1] Search Nightstand Drawer")
@@ -103,9 +98,6 @@ def play_bedroom(player: dict) -> bool:
                 print("\n⚠️ You hesitate and waste a turn!")
                 attempts_left -= 1
 
-        # -------------------------------------------------------------
-        # 2. DISTRACT
-        # -------------------------------------------------------------
         elif action == "2":
             print("\nWhat item do you use?")
             print("  [1] Toss a heavy book")
@@ -156,9 +148,6 @@ def play_bedroom(player: dict) -> bool:
                 print("\n⚠️ Invalid item selection!")
                 attempts_left -= 1
 
-        # -------------------------------------------------------------
-        # 3. DODGE
-        # -------------------------------------------------------------
         elif action == "3":
             print("\nHow do you maneuver?")
             print("  [1] Perform a low side-roll")
@@ -195,10 +184,7 @@ def play_bedroom(player: dict) -> bool:
             else:
                 print("\n⚠️ Invalid maneuver!")
                 attempts_left -= 1
-
-        # -------------------------------------------------------------
-        # 4. SNEAK
-        # -------------------------------------------------------------
+                
         elif action == "4":
             print("\nWhich route do you take?")
             print("  [1] Along the dark side walls")
@@ -235,9 +221,6 @@ def play_bedroom(player: dict) -> bool:
                 print("\n⚠️ Invalid sneak route!")
                 attempts_left -= 1
 
-        # -------------------------------------------------------------
-        # 5. ATTACK
-        # -------------------------------------------------------------
         elif action == "5":
             print("\nHow will you attack?")
             print("  [1] Wave a lit candle flame at it")
@@ -272,8 +255,7 @@ def play_bedroom(player: dict) -> bool:
 
         else:
             print("\n⚠️ Invalid choice! Enter 1, 2, 3, 4, or 5.")
-
-    # Outcome handling
+            
     print_divider()
     if cleared:
         print("🎉 SUCCESS: You grabbed the Bedroom Key and escaped!")
