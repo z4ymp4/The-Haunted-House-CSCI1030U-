@@ -16,7 +16,7 @@ def play_bedroom(player: dict) -> bool:
     print("You step into the freezing room. A specter blocks the exit!")
     print_divider()
 
-    attempts_left: int = 30
+    attempts_left: int = 3
     cleared: bool = False
     
     has_mirror: bool = False
