@@ -17,7 +17,7 @@ def play_bedroom(player: dict) -> bool:
     print("An angry specter floats before you, blocking the exit!")
     print_divider()
 
-    attempts_left: int = 3
+    attempts_left: int = 50
     cleared: bool = False
 
     while attempts_left > 0 and not cleared:
