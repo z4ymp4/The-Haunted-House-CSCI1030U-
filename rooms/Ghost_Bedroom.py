@@ -8,118 +8,131 @@ def print_divider() -> None:
 
 def play_bedroom(player: dict) -> bool:
     """
-    Ghost Bedroom - Extreme Mode.
-    No numbered menus! Players must type action verbs based on ghost behavior.
+    Ghost Bedroom - Tactical Mode.
+    Complex multi-step interactions with a balanced 3-attempt limit.
     """
     print_divider()
-    print("👻 GHOST BEDROOM (NIGHTMARE MODE) 👻")
-    print("You push open the creaking door...")
-    print("An angry specter floats before you, blocking the exit!")
+    print("👻 GHOST BEDROOM 👻")
+    print("You step into the freezing room. A specter blocks the exit!")
     print_divider()
 
-    attempts_left: int = 50
+    attempts_left: int = 3
     cleared: bool = False
+    
+    # Track sub-game state items found inside the room
+    has_mirror: bool = False
 
     while attempts_left > 0 and not cleared:
         current_health = player.get("health", 3)
-        print(f"\n[Health: {current_health} HP | Attempts Left: {attempts_left}]")
+        print(f"\n[ Health: {current_health} HP | Ghost Strikes Left: {attempts_left} ]")
         
-        # Ghost changes state every turn—player must react to this!
+        # Ghost changes stance each round
         ghost_state = random.choice(["watching", "charging", "wandering"])
         
         if ghost_state == "watching":
-            print("👀 The ghost's glowing red eyes are LOCKED onto you!")
+            print("👀 Ghost Stance: Floating in place, watching your every movement!")
         elif ghost_state == "charging":
-            print("⚡ The ghost is preparing to surge straight toward you!")
+            print("⚡ Ghost Stance: Gathering dark mist, getting ready to SURGE forward!")
         else:
-            print("🌫️ The ghost is aimlessly drifting near the ceiling.")
+            print("🌫️ Ghost Stance: Mindlessly drifting near the ceiling with its back turned.")
 
-        print("\nCommands: [ search | sneak | dodge | attack | distract ]")
-        action = input("Type your move: ").strip().lower()
+        print("\nPrimary Actions: [ search | distract | dodge | sneak | attack ]")
+        action = input("Choose primary action: ").strip().lower()
 
         # -------------------------------------------------------------
-        # DODGE (Crucial when ghost is charging)
+        # 1. SEARCH (Has secondary locations to pick from)
         # -------------------------------------------------------------
-        if action == "dodge":
+        if action == "search":
             if ghost_state == "charging":
-                print("\n💥 You dive to the floor just as the ghost swoops over you!")
-                print("It crashes into the wall, dazing itself!")
-                # Small 40% chance to grab the key while dazed
-                if random.randint(1, 10) <= 4:
-                    print("You snag the Bedroom Key off the floor and bolt out!")
+                print("\n❌ You searched while it was charging! You get slammed into the door!")
+                player["health"] = max(0, current_health - 1)
+                attempts_left -= 1
+            else:
+                print("\nWhere do you want to search?")
+                target = input("Pick target [ drawer | bed | carpet ]: ").strip().lower()
+                
+                if target == "drawer":
+                    if not has_mirror:
+                        print("\n✨ You found a polished Silver Mirror inside the drawer!")
+                        has_mirror = True
+                    else:
+                        print("\nDrawer is empty now.")
+                elif target == "carpet":
+                    print("\n🗝️ You peeked under the carpet and spotted the Bedroom Key!")
+                    print("You snatch it before the ghost realizes!")
                     cleared = True
+                elif target == "bed":
+                    print("\n❌ Dust shoots out of the pillow! You cough loudly and alert the ghost!")
+                    attempts_left -= 1
                 else:
-                    print("You dodged the attack, but the ghost quickly recovers!")
-            else:
-                print("\n❌ You roll across the floor for no reason. The ghost punishes your foolishness!")
-                player["health"] = current_health - 1
-                attempts_left -= 1
-
-        # -------------------------------------------------------------
-        # SNEAK (Only works when ghost is wandering + low success rate)
-        # -------------------------------------------------------------
-        elif action == "sneak":
-            if ghost_state == "watching":
-                print("\n❌ The ghost was watching you directly! It blasts you with icy wind!")
-                player["health"] = current_health - 1
-                attempts_left -= 1
-            elif ghost_state == "wandering" and random.randint(1, 10) <= 3: # 30% chance
-                print("\n👟 You creep silently along the wall, grab the key, and escape!")
-                cleared = True
-            else:
-                print("\n👟 *CREAK!* A floorboard snaps! The ghost turns and chills you!")
-                player["health"] = current_health - 1
-                attempts_left -= 1
-
-        # -------------------------------------------------------------
-        # SEARCH (Risky gamble to find a light relic)
-        # -------------------------------------------------------------
-        elif action == "search":
-            if ghost_state == "charging":
-                print("\n❌ You opened a drawer while being charged! Heavy damage taken!")
-                player["health"] = current_health - 2
-                attempts_left -= 1
-            else:
-                search_roll = random.randint(1, 10)
-                if search_roll == 10: # Only 10% chance to find relic
-                    print("\n✨ You found a blessed Silver Mirror! It reflects the ghost's curse!")
-                    cleared = True
-                else:
-                    print("\n❌ You find nothing but dust. The ghost strikes while you search!")
-                    player["health"] = current_health - 1
+                    print("\n⚠️ You waste time searching nothing!")
                     attempts_left -= 1
 
         # -------------------------------------------------------------
-        # DISTRACT (Only useful when watching)
+        # 2. DISTRACT (Has sub-items to throw/use)
         # -------------------------------------------------------------
         elif action == "distract":
-            if ghost_state == "watching" and random.choice([True, False]): # 50% chance
-                print("\n🪙 You hurl a piece of trash to the corner. The ghost floats over to inspect!")
-                print("You slip past and escape!")
+            opts = "coin | book" + (" | mirror" if has_mirror else "")
+            print(f"\nWhat item do you use? [ {opts} ]")
+            item_choice = input("Select item: ").strip().lower()
+
+            if item_choice == "mirror" and has_mirror:
+                print("\n💥 You reflect the ghost's image with the Silver Mirror!")
+                print("It recoils in terror and vanishes into the walls!")
                 cleared = True
+            elif item_choice == "coin" and ghost_state == "watching":
+                print("\n🪙 You flick a coin to the far left. The ghost floats over to inspect it!")
+                print("This gives you enough time to rush the door!")
+                cleared = True
+            elif item_choice == "book" and ghost_state == "wandering":
+                print("\n📚 The book lands quietly on the rug. The ghost ignores it completely.")
+                attempts_left -= 1
             else:
-                print("\n❌ The ghost ignores your distraction completely!")
-                player["health"] = current_health - 1
+                print("\n❌ Your distraction fails! The ghost turns and chills you!")
+                player["health"] = max(0, current_health - 1)
                 attempts_left -= 1
 
         # -------------------------------------------------------------
-        # ATTACK (Almost guaranteed failure)
+        # 3. DODGE (Has follow-up moves)
+        # -------------------------------------------------------------
+        elif action == "dodge":
+            if ghost_state == "charging":
+                print("\n⚡ You dive sideways just as the ghost charges! It slams into the wall!")
+                follow_up = input("Quick! Follow-up move? [ counterattack | grabkey ]: ").strip().lower()
+                
+                if follow_up == "grabkey":
+                    print("\n🎉 You snag the key floating off its belt while it's dazed and escape!")
+                    cleared = True
+                else:
+                    print("\n🥊 You tried to punch it, but your fist passes through! It recovers!")
+                    attempts_left -= 1
+            else:
+                print("\n❌ You dove for no reason! The ghost punishes your foolishness.")
+                player["health"] = max(0, current_health - 1)
+                attempts_left -= 1
+
+        # -------------------------------------------------------------
+        # 4. SNEAK (Simple condition based on wandering stance)
+        # -------------------------------------------------------------
+        elif action == "sneak":
+            if ghost_state == "wandering":
+                print("\n👟 You tiptoe along the edge of the rug, slip past the ghost, and unlock the door!")
+                cleared = True
+            else:
+                print("\n❌ The ghost sees or hears you immediately!")
+                player["health"] = max(0, current_health - 1)
+                attempts_left -= 1
+
+        # -------------------------------------------------------------
+        # 5. ATTACK
         # -------------------------------------------------------------
         elif action == "attack":
-            if random.randint(1, 20) == 20: # 5% critical miracle
-                print("\n🥊 CRITICAL HIT! You somehow punch a ghost into another dimension!")
-                cleared = True
-            else:
-                print("\n🥊 Your fist passes right through it! The ghost freezes your soul!")
-                player["health"] = current_health - 2
-                attempts_left -= 1
-
-        # -------------------------------------------------------------
-        # INVALID COMMAND
-        # -------------------------------------------------------------
-        else:
-            print("\n⚠️ Hesitation is fatal! Type a valid command: search, sneak, dodge, attack, or distract.")
+            print("\n🥊 Physical attacks don't affect specters! You take cold damage!")
+            player["health"] = max(0, current_health - 1)
             attempts_left -= 1
+
+        else:
+            print("\n⚠️ Invalid action! Type search, distract, dodge, sneak, or attack.")
 
     # Outcome handling
     print_divider()
