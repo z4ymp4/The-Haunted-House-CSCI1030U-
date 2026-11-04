@@ -1,7 +1,7 @@
 #intro to comp sci project
 #add your room libary here that you created. 
 from rooms.kitchen import play_kitchen_room
-from rooms.bedroom import play_bedroom
+from rooms.Ghost_Bedroom import play_bedroom
 from rooms.exit_door import play_exit
 from rooms.DarkHallway import play_hallway
 
