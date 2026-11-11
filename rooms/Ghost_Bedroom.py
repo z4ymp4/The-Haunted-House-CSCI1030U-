@@ -3,9 +3,6 @@
 import random
 from rooms.base import Room
 
-# -------------------------------------------------------------
-# OOP REQUIREMENT: Ghost Helper Class
-# -------------------------------------------------------------
 class Ghost:
     def __init__(self):
         self.stance = "watching"
@@ -21,11 +18,7 @@ class Ghost:
     def load_from_dict(self, data):
         self.stance = data.get("stance", "watching")
         self.health = data.get("health", 3)
-
-
-# -------------------------------------------------------------
-# OOP REQUIREMENT: Main Bedroom Room Class
-# -------------------------------------------------------------
+        
 class BedroomRoom(Room):
     def __init__(self, difficulty="normal"):
         super().__init__(name="bedroom")
@@ -42,9 +35,6 @@ class BedroomRoom(Room):
         self.has_mirror = False
         self.searched_locations = []
 
-    # -------------------------------------------------------------
-    # RECURSION REQUIREMENT: Recursive Search Function
-    # -------------------------------------------------------------
     def check_spot_recursively(self, spots_list, target_spot, index=0):
         if index >= len(spots_list):
             return False
@@ -52,9 +42,6 @@ class BedroomRoom(Room):
             return True
         return self.check_spot_recursively(spots_list, target_spot, index + 1)
 
-    # -------------------------------------------------------------
-    # FILE I/O REQUIREMENT: Save & Load Dict Methods
-    # -------------------------------------------------------------
     def to_dict(self):
         return {
             "name": self.name,
@@ -74,14 +61,10 @@ class BedroomRoom(Room):
         if "ghost" in data:
             self.ghost.load_from_dict(data["ghost"])
 
-    # Helper method for player taking damage to avoid repeating code
     def damage_player(self, player):
         player.health = max(0, player.health - 1)
         self.attempts_left -= 1
 
-    # -------------------------------------------------------------
-    # MAIN GAMEPLAY LOOP
-    # -------------------------------------------------------------
     def play(self, player):
         print("=" * 45)
         print("👻 GHOST BEDROOM 👻")
@@ -110,7 +93,6 @@ class BedroomRoom(Room):
             print("  [5] Attack directly")
             action = input("\nChoose action (1-5): ").strip()
 
-            # --- 1. SEARCH ---
             if action == "1":
                 print("\nWhere do you want to search?")
                 print("  [1] Search Nightstand Drawer")
@@ -126,7 +108,6 @@ class BedroomRoom(Room):
                 elif target_choice == "3":
                     target_name = "carpet"
 
-                # Verify spot exists via recursion
                 if self.check_spot_recursively(valid_spots, target_name):
                     if target_name in self.searched_locations:
                         if target_name == "drawer":
@@ -162,7 +143,6 @@ class BedroomRoom(Room):
                     print("\n⚠️ You hesitate and waste a turn!")
                     self.attempts_left -= 1
 
-            # --- 2. DISTRACT ---
             elif action == "2":
                 print("\nWhat item do you use?")
                 print("  [1] Toss a heavy book")
@@ -206,7 +186,6 @@ class BedroomRoom(Room):
                     print("\n⚠️ Invalid item selection!")
                     self.attempts_left -= 1
 
-            # --- 3. DODGE ---
             elif action == "3":
                 print("\nHow do you maneuver?")
                 print("  [1] Perform a low side-roll")
@@ -240,7 +219,6 @@ class BedroomRoom(Room):
                     print("\n⚠️ Invalid maneuver!")
                     self.attempts_left -= 1
 
-            # --- 4. SNEAK ---
             elif action == "4":
                 print("\nWhich route do you take?")
                 print("  [1] Along the dark side walls")
@@ -273,7 +251,6 @@ class BedroomRoom(Room):
                     print("\n⚠️ Invalid sneak route!")
                     self.attempts_left -= 1
 
-            # --- 5. ATTACK ---
             elif action == "5":
                 print("\nHow will you attack?")
                 print("  [1] Wave a lit candle flame at it")
@@ -305,7 +282,6 @@ class BedroomRoom(Room):
             else:
                 print("\n⚠️ Invalid choice! Enter 1, 2, 3, 4, or 5.")
 
-        # --- OUTCOME HANDLING ---
         print("=" * 45)
         if self.cleared:
             print("🎉 SUCCESS: You grabbed the bedroom_key and escaped!")
@@ -317,19 +293,3 @@ class BedroomRoom(Room):
             print("💀 FAILED: You were driven out of the bedroom!")
             print("=" * 45)
             return False
-
-
-# -------------------------------------------------------------
-# DIRECT TEST BLOCK (For testing room directly in VS Code)
-# -------------------------------------------------------------
-if __name__ == "__main__":
-    class SimplePlayer:
-        def __init__(self):
-            self.health = 3
-            self.keys = []
-            self.rooms_completed = []
-
-    test_room = BedroomRoom(difficulty="normal")
-    test_player = SimplePlayer()
-    result = test_room.play(test_player)
-    print(f"\n[TEST RESULT] Cleared: {result}")
