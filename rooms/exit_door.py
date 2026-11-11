@@ -1,56 +1,60 @@
-def play_exit(player):
-    """
-    Room 5: The Exit Door
-    The player must inspect and try the final exit door using collected keys.
-    """
-    # Dictionary storing room info & requirements
-    exit_info = {
-        "required_keys": 3,
-        "attempts_left": 3,
-        "door_status": "locked",
-        "choices": ["1. Inspect the door", "2. Try the door", "3. Look around for clues"]
-    }
+from rooms.base import Room
 
-    print("\n--- ROOM 5: THE EXIT DOOR ---")
-    print("You reach the heavy iron front door of the haunted house.")
+class ExitRoom(Room):
+    def __init__(self, required_keys: int = 3):
+        super().__init__("Exit Room", "The grand front doors of the mansion sit before you, heavy and locked.")
+        self.required_keys = required_keys
+        self.attempts_left = 3
+        self.door_status = "locked"
 
-    # while Loop allowing the player to make decisions, locking them in the loop tiil either they escape or run out of attempts
-    while exit_info["attempts_left"] > 0:
-        print("\nWhat would you like to do?")
-        for choice in exit_info["choices"]:
-            print(choice)
+    def play(self, player) -> bool:
+        print(f"\n--- ROOM 5: THE EXIT DOOR ---")
+        print(self.description)
+        
+        choices = [
+            "1. Inspect the door", 
+            "2. Try the door", 
+            "3. Look around for clues"
+        ]
 
-        user_choice = input("Enter option (1-3): ").strip()
-
-        # if / else conditions for player choice
-        if user_choice == "1":
-            print(f"The door has {exit_info['required_keys']} heavy keyholes. It looks solid.")
-            
-        elif user_choice == "2":
-            # Check player's keys list from shared player dictionary
-            keys_found = len(player["keys"])
-            print(f"You have {keys_found} out of {exit_info['required_keys']} keys needed.")
-
-            if keys_found >= exit_info["required_keys"]:
-                exit_info["door_status"] = "unlocked"
-                print("\nYou insert all your keys into the door... Click! The heavy door swings open!")
-                print(f"Congratulations {player['name']}! You escaped the haunted house!")
+        while self.attempts_left > 0:
+            print(f"\nYou have {len(player.keys)} key(s). Attempts left: {self.attempts_left}")
+            print("\nWhat would you like to do?")
+            for choice in choices:
+                print(choice)
                 
-                # Update player tracking collection
-                player["rooms_completed"].append("exit_door")
-                return True
+            action = input("> ").strip()
+
+            if action == "1" or "inspect" in action.lower():
+                print("\nYou examine the door closely. It features a massive iron lock with three keyholes.")
+            elif action == "2" or "try" in action.lower():
+                if len(player.keys) >= self.required_keys:
+                    print("\n🔑 You insert your keys into the three locks... Click, click, click! The front door swings open!")
+                    self.completed = True
+                    return True
+                else:
+                    print(f"\n The lock clicks stubbornly. You need {self.required_keys} keys, but you only have {len(player.keys)}!")
+                    self.attempts_left -= 1
+            elif action == "3" or "clues" in action.lower():
+                print("\nYou search the dark hallway surrounding the door. Scrawled on the wall in fading paint: 'Only those who gather all keys may leave.'")
             else:
-                exit_info["attempts_left"] -= 1
-                print("The lock won't budge! You don't have enough keys yet.")
-                print(f"Attempts left: {exit_info['attempts_left']}")
+                print("\nInvalid choice. Try again.")
 
-        elif user_choice == "3":
-            print("Dust settles on the cold floor. The only way out is through that front door.")
+        print("\nThe mansion walls close in on you... You ran out of attempts and failed to escape.")
+        return False
 
-        else:
-            print("Invalid option. Please enter 1, 2, or 3.")
+    def to_dict(self) -> dict:
+        data = super().to_dict()
+        data.update({
+            "attempts_left": self.attempts_left,
+            "door_status": self.door_status
+        })
+        return data
 
-    # Outcome if player runs out of attempts/time at the door
-    print("\nA dark shadow envelops you before you can figure out the lock...")
-    print("GAME OVER - You failed to escape in time.")
-    return False
+    @classmethod
+    def from_dict(cls, data: dict):
+        room = cls()
+        room.completed = data.get("completed", False)
+        room.attempts_left = data.get("attempts_left", 3)
+        room.door_status = data.get("door_status", "locked")
+        return room
