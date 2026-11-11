@@ -1,0 +1,9 @@
+{
+"question": "What has keys but cannot open locks?",
+"answer": "piano",
+"reward": "library_key",
+"hints": [
+"It makes music when played.",
+"It has black and white keys."
+]
+}
