@@ -4,8 +4,8 @@ import os
 
 from player import Player
 from scoreboard import ScoreBoard
-from rooms.dark_hallway import DarkHallway, HOUSE_MAP, count_reachable
-from rooms.library import LibraryRoom
+from rooms.DarkHallway import DarkHallway, HOUSE_MAP, count_reachable
+from rooms.Library import LibraryRoom
 from rooms.kitchen import KitchenRoom
 from rooms.bedroom import BedroomRoom
 from rooms.exit_door import ExitRoom

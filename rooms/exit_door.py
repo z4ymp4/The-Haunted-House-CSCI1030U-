@@ -1,60 +1,46 @@
+"""Room 5: The Exit Door (Member 5)."""
 from rooms.base import Room
 
+ALL_KEYS = ["hallway_key", "library_key", "kitchen_key", "bedroom_key"]
+
+
 class ExitRoom(Room):
-    def __init__(self, required_keys: int = 3):
-        super().__init__("Exit Room", "The grand front doors of the mansion sit before you, heavy and locked.")
-        self.required_keys = required_keys
-        self.attempts_left = 3
-        self.door_status = "locked"
+    room_id = "exit_door"
+    title = "The Exit Room"
 
-    def play(self, player) -> bool:
-        print(f"\n--- ROOM 5: THE EXIT DOOR ---")
-        print(self.description)
-        
-        choices = [
-            "1. Inspect the door", 
-            "2. Try the door", 
-            "3. Look around for clues"
-        ]
+    def __init__(self, settings):
+        super().__init__(settings)
+        self.required_keys = settings["required_keys"]
+        self.attempts_left = settings["attempts"]
 
+    def play(self, ctx, player):
+        ctx.say("You reach the heavy iron front door of the haunted house.")
         while self.attempts_left > 0:
-            print(f"\nYou have {len(player.keys)} key(s). Attempts left: {self.attempts_left}")
-            print("\nWhat would you like to do?")
-            for choice in choices:
-                print(choice)
-                
-            action = input("> ").strip()
-
-            if action == "1" or "inspect" in action.lower():
-                print("\nYou examine the door closely. It features a massive iron lock with three keyholes.")
-            elif action == "2" or "try" in action.lower():
-                if len(player.keys) >= self.required_keys:
-                    print("\n🔑 You insert your keys into the three locks... Click, click, click! The front door swings open!")
-                    self.completed = True
-                    return True
+            ctx.say("\n1. Inspect the door\n2. Try the door\n3. Look around for clues")
+            choice = ctx.ask("Enter option (1-3): ").strip()
+            if choice == "1":
+                ctx.say(f"The door has {self.required_keys} heavy keyholes. It looks solid.")
+            elif choice == "2":
+                have = len(set(player.keys))
+                ctx.say(f"You have {have} of {self.required_keys} keys needed.")
+                if have >= self.required_keys:
+                    ctx.say(f"Click! The door swings open! You escaped, {player.name}!")
+                    return self.finish(player)
+                self.attempts_left -= 1
+                ctx.say(f"The lock won't budge! Attempts left: {self.attempts_left}")
+            elif choice == "3":
+                missing = [k for k in ALL_KEYS if k not in player.keys]
+                if missing:
+                    ctx.say("Faint engravings suggest keys you lack: " + ", ".join(missing))
                 else:
-                    print(f"\n The lock clicks stubbornly. You need {self.required_keys} keys, but you only have {len(player.keys)}!")
-                    self.attempts_left -= 1
-            elif action == "3" or "clues" in action.lower():
-                print("\nYou search the dark hallway surrounding the door. Scrawled on the wall in fading paint: 'Only those who gather all keys may leave.'")
+                    ctx.say("You have every key. Try the door!")
             else:
-                print("\nInvalid choice. Try again.")
-
-        print("\nThe mansion walls close in on you... You ran out of attempts and failed to escape.")
+                ctx.say("Invalid option. Please enter 1, 2, or 3.")
+        ctx.say("\nA dark shadow envelops you before you can work out the lock...")
         return False
 
-    def to_dict(self) -> dict:
-        data = super().to_dict()
-        data.update({
-            "attempts_left": self.attempts_left,
-            "door_status": self.door_status
-        })
-        return data
+    def to_dict(self):
+        return {"attempts_left": self.attempts_left}
 
-    @classmethod
-    def from_dict(cls, data: dict):
-        room = cls()
-        room.completed = data.get("completed", False)
-        room.attempts_left = data.get("attempts_left", 3)
-        room.door_status = data.get("door_status", "locked")
-        return room
+    def from_dict(self, data):
+        self.attempts_left = data.get("attempts_left", self.attempts_left)

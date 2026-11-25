@@ -1,26 +1,32 @@
-from abc import ABC, abstractmethod
+"""Room base class. Every room inherits from this (Member 1)."""
 
-class Room(ABC):
-    def __init__(self, name: str, description: str):
-        self.name = name
-        self.description = description
-        self.completed = False
 
-    @abstractmethod
-    def play(self, player) -> bool:
-        """Executes room logic. Returns True if room passed/cleared, False if failed/game over."""
+class Room:
+    room_id = "room"
+    title = "A Room"
+    reward_keys = []    # given automatically when --start-room skips this room
+    reward_items = []
+
+    def __init__(self, settings):
+        self.settings = settings
+
+    def play(self, ctx, player):
+        """Run the room using ctx.say / ctx.ask. Return True if cleared."""
+        raise NotImplementedError
+
+    def to_dict(self):
+        return {}
+
+    def from_dict(self, data):
         pass
 
-    def to_dict(self) -> dict:
-        """Serializes room state to a dict for JSON saving."""
-        return {
-            "name": self.name,
-            "completed": self.completed
-        }
+    def finish(self, player):
+        if self.room_id not in player.rooms_completed:
+            player.rooms_completed.append(self.room_id)
+        return True
 
-    @classmethod
-    def from_dict(cls, data: dict):
-        """Reconstructs room instance from dict."""
-        room = cls()
-        room.completed = data.get("completed", False)
-        return room
+    def give_rewards(self, player):
+        for key in self.reward_keys:
+            player.add_key(key)
+        for item in self.reward_items:
+            player.add_item(item)

@@ -4,7 +4,7 @@ import os
 
 from game import DIFFICULTY, ROOM_IDS, Game, build_settings
 from player import Player
-from scoreboard import ScoreBoard
+from scoreboard  import Scoreboard
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 
