@@ -1,7 +1,7 @@
 # Kapishnan
 
-import time
-import threading
+import asyncio
+import socket
 from rooms.base import Room
 
 
@@ -54,31 +54,40 @@ class BedroomRoom(Room):
     def search_spot(self, spot):
         if type(spot) == str:
             return spot == "mirror"
-
         for item in spot.values():
             if self.search_spot(item):
                 return True
         return False
 
-    def ghost_attack_loop(self, io, shared_state):
+    def send_msg(self, sock, text):
+        sock.sendall((text + "\n").encode())
+
+    async def ask_msg(self, sock, prompt):
+        self.send_msg(sock, prompt)
+        loop = asyncio.get_event_loop()
+        data = await loop.sock_recv(sock, 1024)
+        return data.decode().strip()
+
+    async def ghost_attack_loop(self, shared_state):
         while self.ghost_active and self.ghost.health > 0:
-            time.sleep(8) 
+            await asyncio.sleep(8)
 
             if self.ghost_active and len(shared_state["players"]) > 0:
-                with shared_state["lock"]:
-                    target = self.ghost.pick_weakest_player(shared_state["players"])
-                    if target.health > 0:
-                        attack = self.ghost.next_attack()
-                        target.take_damage(1)
-                        io.broadcast(f"[GHOST] {attack} hit {target.name} (weakest player)! HP left: {target.health}")
+                target = self.ghost.pick_weakest_player(shared_state["players"])
+                if target.health > 0:
+                    attack = self.ghost.next_attack()
+                    target.take_damage(1)
+                    for client_sock in shared_state["sockets"]:
+                        self.send_msg(
+                            client_sock,
+                            f"[GHOST] {attack} hit {target.name} (weakest player)! HP left: {target.health}",
+                        )
 
-    def play(self, player, io, shared_state):
-        io.send(f"\n--- Ghost Bedroom (Difficulty: {self.difficulty}) ---")
-        io.broadcast(f"{player.name} entered the Ghost Bedroom!")
+    async def play(self, player, sock, shared_state):
+        self.send_msg(sock, f"\n--- Ghost Bedroom (Difficulty: {self.difficulty}) ---")
 
         self.ghost_active = True
-        thread = threading.Thread(target=self.ghost_attack_loop, args=(io, shared_state))
-        thread.start()
+        ghost_task = asyncio.create_task(self.ghost_attack_loop(shared_state))
 
         hiding_spots = {
             "wardrobe": {"winter_coat": {"inner_pocket": "mirror"}},
@@ -86,40 +95,39 @@ class BedroomRoom(Room):
         }
 
         while self.ghost.health > 0 and player.health > 0:
-            io.send(f"\nYour HP: {player.health} | Ghost HP: {self.ghost.health}")
-            io.send("[1] Search wardrobe  [2] Search desk  [3] Attack Ghost with mirror")
-            choice = io.ask("Choose 1, 2, or 3: ")
+            self.send_msg(sock, f"\nYour HP: {player.health} | Ghost HP: {self.ghost.health}")
+            self.send_msg(sock, "[1] Search wardrobe  [2] Search desk  [3] Attack Ghost with mirror")
+            choice = await self.ask_msg(sock, "Choose 1, 2, or 3: ")
 
             if choice == "1":
                 if self.search_spot(hiding_spots["wardrobe"]):
                     self.has_mirror = True
-                    io.send("You found a Silver Mirror deep inside the wardrobe!")
+                    self.send_msg(sock, "You found a Silver Mirror deep inside the wardrobe!")
 
             elif choice == "2":
                 if "bedroom_key" not in player.keys:
                     player.keys.append("bedroom_key")
-                    io.send("You found the bedroom_key inside the desk!")
+                    self.send_msg(sock, "You found the bedroom_key inside the desk!")
                 else:
-                    io.send("The desk is empty.")
+                    self.send_msg(sock, "The desk is empty.")
 
             elif choice == "3":
                 if self.has_mirror:
                     self.ghost.health -= 2
-                    io.send("You shine the Silver Mirror! Ghost loses 2 HP!")
+                    self.send_msg(sock, "You shine the Silver Mirror! Ghost loses 2 HP!")
                 else:
-                    io.send("You have no mirror! The Ghost hits you!")
-                    with shared_state["lock"]:
-                        player.take_damage(1)
+                    self.send_msg(sock, "You have no mirror! The Ghost hits you!")
+                    player.take_damage(1)
             else:
-                io.send("Invalid choice. Enter 1, 2, or 3.")
+                self.send_msg(sock, "Invalid choice. Enter 1, 2, or 3.")
 
         self.ghost_active = False
+        ghost_task.cancel()
 
         if player.health <= 0:
-            io.send("You ran out of health!")
+            self.send_msg(sock, "You ran out of health!")
             return False
 
-        io.broadcast(f"{player.name} beat the Ghost and escaped the Bedroom!")
         return True
 
     def to_dict(self):
